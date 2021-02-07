@@ -5,7 +5,7 @@ PEDW.sql = paste0("
 		MERGE INTO  	", cohort.table, " A
 		USING				(
 		                  SELECT    B.", alf, "
-														  , COUNT(DISTINCT S.SPELL_NUM_PE) AS ", colname.., "
+														  , COUNT(DISTINCT S.ADMIS_DT) AS ", colname.., "
 
 											FROM		", cohort.table, " 			B
 
@@ -14,14 +14,15 @@ PEDW.sql = paste0("
 												ON		B.", alf, " = S.", alf, "
 
                         ", ifelse(ADMIS_MTHD_CD %>% length > 1,
+
                                   "AND S.ADMIS_MTHD_CD IN ('" %>% paste0(ADMIS_MTHD_CD %>% paste0(collapse = "', '")) %>% paste0("')"),
+
                                   ""), "
 
 											JOIN		", DS$PEDW_EP ," 	E
 
 												ON		S.SPELL_NUM_PE  = E.SPELL_NUM_PE
 												AND		S.PROV_UNIT_CD = E.PROV_UNIT_CD
-
 											  AND		E.DIAG_CD_123 IN ('J45', 'J46')
 										    AND   S.ADMIS_DT BETWEEN '", followup[1], "' AND '", followup[2], "'
 

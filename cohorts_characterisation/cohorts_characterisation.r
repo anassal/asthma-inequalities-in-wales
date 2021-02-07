@@ -1,19 +1,21 @@
-criteria.cohortSelection = c('none', 'WOB', 'WIMD', 'ASTHMA', 'DOD') # not including GPREG because it will be used later
+criteria.cohortSelection = c('none', 'WOB', 'WIMDQ', 'ASTHMA', 'DOD') # not filtering by GPREG because it will be used later
 
 sql.flowchart.where.SQL =
   sql.flowchart.where %>% lapply(extract2, 'sql') %>% magrittr::extract(criteria.cohortSelection) %>%
   unlist %>% paste(collapse = ' AND ')
 
-runSQL("call fnc.drop_if_exists('", cohort.table, "');
+runSQL("
+   call fnc.drop_if_exists('", cohort.table, "');
 	 CREATE TABLE ", cohort.table, " AS (SELECT * FROM ", cohortSelectionTable, " WHERE ", sql.flowchart.where.SQL, ") WITH NO DATA;
+
    INSERT INTO  ", cohort.table, "    (SELECT * FROM ", cohortSelectionTable, " WHERE ", sql.flowchart.where.SQL, ")             ;
+
 ")
 
+# create WLGP subset for cohort.table
 
-# create WLGP subset
 paste0("
   call fnc.drop_if_exists('", DS$WLGP_subset, "');
-
   CREATE TABLE             ", DS$WLGP_subset, " AS
           ( SELECT    G.ALF_PE, G.EVENT_CD, G.EVENT_DT, G.EVENT_VAL
             FROM      ", DS$WLGP, " G
@@ -25,12 +27,14 @@ paste0("
           	) T
 
           	ON      T.ALF_PE = G.ALF_PE
+        	  AND     T.ALF_PE IS NOT NULL
 
-          	AND     T.ALF_PE IS NOT NULL
   ) WITH NO DATA;
 
   INSERT INTO              ", DS$WLGP_subset, "
+
           ( SELECT    G.ALF_PE, G.EVENT_CD, G.EVENT_DT, G.EVENT_VAL
+
             FROM      ", DS$WLGP, " G
 
           	JOIN      (
@@ -40,16 +44,19 @@ paste0("
           	) T
 
           	ON      T.ALF_PE = G.ALF_PE
-
           	AND     T.ALF_PE IS NOT NULL
           )
   ;
-") # %>% runSQL
 
+")  %>% runSQL
 
+GP_characterisation_ = model2sql.web(model.nid = 102)
+GP_characterisation_$model.constants$STUDY_STARTDATE$constantValue = '2013-01-01'
+GP_characterisation_$model.constants$STUDY_ENDDATE  $constantValue = '2017-12-31'
 
-GP_characterisation.sqlmodel = gpact::model2sql(
-	  page.id = 102,
+GP_characterisation.sqlmodel = model2sql(
+
+	  model.source = GP_characterisation_,
 		outputPath = path.SQL,
 		model.SQLTable = cohort.table,
 		append_to_table = T,
@@ -68,17 +75,9 @@ GP_characterisation.sqlmodel = gpact::model2sql(
 
 sql.extraction = GP_characterisation.sqlmodel$model.SQL
 
-#
 source('cohorts_characterisation/ASTHMA_LOS.r')
-
-#
 source('cohorts_characterisation/PEDW_ASTHMA.r')
-
-#
 source('cohorts_characterisation/EDDS_ASTHMA.r')
-
 
 # run the SQL queries
 sql.extraction %>% paste0(collapse = ' \n\n ') %>% runSQL
-
-

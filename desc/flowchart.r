@@ -1,9 +1,4 @@
-# flowchart
-
-
-######################## stats
-
-
+ # flowchart
 
 sql.flowchart.base = paste0("SELECT count(*) FROM ", cohortSelectionTable, " WHERE ")
 
@@ -15,8 +10,8 @@ sql.flowchart.where[['none'  ]] = list(sql = "1 = 1",
 sql.flowchart.where[['WOB'   ]] = list(sql = paste0("WOB < '", followup[1], "'"),
 															label = 'Was born before' %>% paste0(followup[1]))
 
-sql.flowchart.where[['WIMD'  ]] = list(sql = paste0("WIMD IS NOT NULL "),
-															label = 'had a valid WIMD')
+sql.flowchart.where[['WIMDQ'  ]] = list(sql = paste0("WIMDQ IS NOT NULL "),
+															label = 'had a valid WIMDQ')
 
 sql.flowchart.where[['DOD'   ]] = list(sql = paste0("(DOD IS NULL OR DOD > '", followup[2], "')"),
 															label = 'where alive at least after ' %>% paste0(followup[1]))
@@ -32,19 +27,11 @@ sql.flowchart.where[['RX'    ]] = list(sql = paste0(
 															),
 															label = 'asthma prescriptions every year between ' %>% paste0(followup[1], ' and ', followup[2]))
 
-
-
-
-
 list.of.criteria = sql.flowchart.where %>% names
-# list.of.criteria = c('none','WOB','WIMD','DOD','GPREG','ASTHMA','RX')
-# list.of.criteria = c('none','WOB','WIMD','DOD','GPREG')
-# list.of.criteria = c('none','WOB','WIMD',              'ASTHMA') # for mortality analysis
-# list.of.criteria = c('none','WOB','WIMD','DOD',        'ASTHMA','RX') # for mortality analysis
 
 population.n = c()
-for (cirt.i in list.of.criteria %>% seq_along) {
 
+for (cirt.i in list.of.criteria %>% seq_along) {
   population.n[cirt.i] =
 	  sqlQuery2(sql.flowchart.base,
 	  					sql.flowchart.where[list.of.criteria[1:cirt.i]] %>%
@@ -74,6 +61,5 @@ sink(paste0(outputPath.results, 'cohort_selection_flowchart_', timeNow(),'.txt')
     select(id, SQL, Label, N) %>%
     pander::pandoc.table(split.cells = c(7, 30, 30, 10), justify = c('left', 'left', 'left', 'right'))
 sink()
-
 
 

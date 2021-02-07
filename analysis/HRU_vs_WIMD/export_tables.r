@@ -4,27 +4,23 @@ exportIRR_table = function(coef0, cohort_version = '') {
 
 	tbl = list()
 	round0 = 3
+
 	for (outcome in outcomes$code){
 		tbl[[outcome]] =
 		  coef0[[outcome]][,
 				list(
 					round(Estimate, round0) %>% format(nsmall = round0),
-					sig,
+					paste0(P %>% round.d(3), '  ', sig),
 					paste0('(', round(LCL,round0) %>% format(nsmall = round0), ', ', round(UCL,round0) %>% format(nsmall = round0), ')')
 					)]
+
 		# reorder
 		tbl[[outcome]] = rbind(
 			tbl[[outcome]][2:7],
 			tbl[[outcome]][1  ]
 		) %>% t %>% matrix(nrow = 1) %>% as.data.table
 
-		# add twologlik
-		#tbl[[outcome]] %<>% c(paste0(' & ', model.[[outcome]]$twologlik %>% round(1) %>% format(nsmall = 1))
-		#										#, paste0(' & ', model.[[outcome]]$model %>% nrow %>% formatC(format = 'd', big.mark = ','))
-		#										)
-
 	}
-
 
 	tbl2 = tbl %>% do.call(what = 'rbind')
 

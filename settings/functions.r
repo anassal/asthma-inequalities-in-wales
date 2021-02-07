@@ -1,5 +1,3 @@
-
-
 formula.gen = function(D,I) as.formula(paste0(D, " ~ ", I)) %>%	return
 
 formula.append = function(frm, string){
@@ -7,6 +5,7 @@ formula.append = function(frm, string){
 }
 
 # convert p-value into a star range
+
 sig = function (x){
 	y = c()
 	for (i in seq_along(x)) {
